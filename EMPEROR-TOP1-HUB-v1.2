@@ -1,0 +1,102 @@
+-- EMPEROR-HUB-V1 + Sharingan Intro متقدم + HUB V4
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local pl = Players.LocalPlayer
+local PlayerGui = pl:WaitForChild("PlayerGui")
+
+-- === إعدادات قابلة للتعديل ===
+local introDuration = 5        -- مدة الانترو بالثواني
+local rotationSpeed = 120      -- سرعة دوران العين (درجات/ثانية)
+local initialEyeSize = 100     -- حجم البداية للعين
+local finalEyeSize = 300       -- الحجم النهائي للعين
+local initialHaloSize = 120    -- حجم البداية للهالة
+local finalHaloSize = 350      -- الحجم النهائي للهالة
+local glowAlpha = 0.2          -- شدة وميض العين
+local soundId = "rbxassetid://1843522032" -- صوت الانترو (يمكن تغييره)
+
+-- === إنشاء الانترو ===
+local introScreen = Instance.new("ScreenGui")
+introScreen.ResetOnSpawn = false
+introScreen.IgnoreGuiInset = true
+introScreen.Parent = PlayerGui
+
+local sharingan = Instance.new("ImageLabel")
+sharingan.Size = UDim2.new(0,initialEyeSize,0,initialEyeSize)
+sharingan.Position = UDim2.new(0.5,0,0.5,0)
+sharingan.AnchorPoint = Vector2.new(0.5,0.5)
+sharingan.BackgroundTransparency = 1
+sharingan.Image = "rbxassetid://11380031729" -- صورة شارينغان حقيقية
+sharingan.Parent = introScreen
+
+-- Halo أحمر
+local halo = Instance.new("Frame", introScreen)
+halo.Size = UDim2.new(0, initialHaloSize,0,initialHaloSize)
+halo.AnchorPoint = Vector2.new(0.5,0.5)
+halo.Position = UDim2.new(0.5,0,0.5,0)
+halo.BackgroundColor3 = Color3.fromRGB(255,0,0)
+halo.BackgroundTransparency = 0.7
+halo.ZIndex = sharingan.ZIndex - 1
+halo.BorderSizePixel = 0
+local haloCorner = Instance.new("UICorner", halo)
+haloCorner.CornerRadius = UDim.new(1,0)
+
+-- خطوط طاقة ديناميكية
+local energyLines = {}
+for i = 1,6 do
+    local line = Instance.new("Frame", introScreen)
+    line.Size = UDim2.new(0,4,0,30)
+    line.AnchorPoint = Vector2.new(0.5,0.5)
+    line.Position = UDim2.new(0.5,0,0.5,0)
+    line.BackgroundColor3 = Color3.fromRGB(255,0,0)
+    line.BackgroundTransparency = 0.5
+    line.Rotation = i * 60
+    line.BorderSizePixel = 0
+    table.insert(energyLines,line)
+end
+
+-- وميض Glow
+spawn(function()
+    while sharingan.Parent do
+        TweenService:Create(sharingan, TweenInfo.new(0.5), {ImageTransparency=glowAlpha}):Play()
+        task.wait(0.5)
+        TweenService:Create(sharingan, TweenInfo.new(0.5), {ImageTransparency=0}):Play()
+        task.wait(0.5)
+    end
+end)
+
+-- دوران + تكبير تدريجي
+local rot = 0
+local rotating = true
+RunService.RenderStepped:Connect(function(dt)
+    if rotating then
+        rot = rot + dt * rotationSpeed
+        sharingan.Rotation = rot
+        halo.Rotation = rot
+        for i,line in pairs(energyLines) do
+            line.Rotation = rot * (i%2==0 and 1 or -1)
+        end
+    end
+end)
+
+-- تكبير تدريجي
+TweenService:Create(sharingan, TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0,finalEyeSize,0,finalEyeSize)
+}):Play()
+TweenService:Create(halo, TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0,finalHaloSize,0,finalHaloSize)
+}):Play()
+
+-- صوت الانترو
+local sound = Instance.new("Sound", introScreen)
+sound.SoundId = soundId
+sound.Volume = 1
+sound:Play()
+
+-- انتهاء الانترو وتشغيل HUB V4
+task.delay(introDuration, function()
+    rotating = false
+    introScreen:Destroy()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/vnxhussen-cmyk/EM/main/EMPEROR-TOP1-HUB-V4"))()
+end)
