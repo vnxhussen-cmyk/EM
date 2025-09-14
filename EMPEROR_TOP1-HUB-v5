@@ -1,0 +1,209 @@
+-- EMPEROR-HUB-V1 (نسخة PC مطورة مع Resizer)
+local TweenService = game:GetService("TweenService")
+local RS = game:GetService("RunService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local pl = Players.LocalPlayer
+local char = pl.Character or pl.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- BillboardGui للبايو والاسم
+local BillboardGui = Instance.new("BillboardGui", hrp)
+BillboardGui.Size = UDim2.new(0,200,0,50)
+BillboardGui.StudsOffset = Vector3.new(0,3,0)
+BillboardGui.AlwaysOnTop = true
+
+local NameLabel = Instance.new("TextLabel", BillboardGui)
+NameLabel.Size = UDim2.new(1,0,0.5,0)
+NameLabel.Text = "- المطور WABU_ALHASAN"
+NameLabel.TextColor3 = Color3.fromRGB(255,0,0)
+NameLabel.BackgroundTransparency = 1
+NameLabel.TextScaled = true
+
+local BioLabel = Instance.new("TextLabel", BillboardGui)
+BioLabel.Size = UDim2.new(1,0,0.5,0)
+BioLabel.Position = UDim2.new(0,0,0.5,0)
+BioLabel.Text = "- الدس الخاص بالمطور.(.1.h_)"
+BioLabel.TextColor3 = Color3.fromRGB(0,255,0)
+BioLabel.BackgroundTransparency = 1
+BioLabel.TextScaled = true
+
+task.delay(5, function()
+    local info = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+    TweenService:Create(NameLabel, info, {TextTransparency=1}):Play()
+    TweenService:Create(BioLabel, info, {TextTransparency=1}):Play()
+    task.wait(1)
+    BillboardGui:Destroy()
+end)
+
+-- GUI الرئيسي
+local sg = Instance.new("ScreenGui", game.CoreGui)
+sg.Name = "EMPEROR-HUB-V1"
+
+local mainFrame = Instance.new("Frame", sg)
+mainFrame.Size = UDim2.new(0,600,0,400) -- حجم افتراضي
+mainFrame.Position = UDim2.new(1,0,0.5,-200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+mainFrame.BorderSizePixel = 0
+
+local sideBar = Instance.new("Frame", mainFrame)
+sideBar.Size = UDim2.new(0,120,1,0)
+sideBar.Position = UDim2.new(0,0,0,0)
+sideBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+sideBar.BorderSizePixel = 0
+
+local contentFrame = Instance.new("Frame", mainFrame)
+contentFrame.Size = UDim2.new(1,-120,1,0)
+contentFrame.Position = UDim2.new(0,120,0,0)
+contentFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+contentFrame.BorderSizePixel = 0
+
+-- زر القائمة ثابت يمين الشاشة
+local toggleBtn = Instance.new("TextButton", sg)
+toggleBtn.Size = UDim2.new(0,50,0,50)
+toggleBtn.Position = UDim2.new(1,-70,0.5,-25)
+toggleBtn.Text = "≡"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.TextScaled = true
+
+-- Resizer للتحكم بالحجم
+local resizer = Instance.new("Frame", mainFrame)
+resizer.Size = UDim2.new(0,20,0,20)
+resizer.Position = UDim2.new(1,-20,1,-20)
+resizer.BackgroundColor3 = Color3.fromRGB(255,255,255)
+resizer.BorderSizePixel = 0
+resizer.BackgroundTransparency = 0.3
+resizer.Active = true
+
+local resizing = false
+local startPos, startSize
+
+resizer.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        resizing = true
+        startPos = UserInputService:GetMouseLocation()
+        startSize = mainFrame.Size
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        resizing = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = UserInputService:GetMouseLocation() - startPos
+        mainFrame.Size = UDim2.new(0, math.max(400, startSize.X.Offset + delta.X), 0, math.max(250, startSize.Y.Offset + delta.Y))
+    end
+end)
+
+-- Tabs
+local function createTab(name, callback)
+    local btn = Instance.new("TextButton", sideBar)
+    btn.Size = UDim2.new(1,0,0,35)
+    btn.Position = UDim2.new(0,0,0,(#sideBar:GetChildren()-1)*35)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    btn.BorderSizePixel = 0
+    btn.MouseButton1Click:Connect(function()
+        for _,child in pairs(contentFrame:GetChildren()) do
+            child:Destroy()
+        end
+        callback()
+    end)
+end
+
+local function addScriptButton(parent, name, url, y)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1,-20,0,30)
+    btn.Position = UDim2.new(0,10,0,y)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    btn.BorderSizePixel = 0
+    btn.MouseButton1Click:Connect(function()
+        setclipboard(url)
+        loadstring(game:HttpGet(url))()
+    end)
+end
+
+-- Tabs كاملة
+createTab("ترحيب", function()
+    local lbl = Instance.new("TextLabel", contentFrame)
+    lbl.Size = UDim2.new(1,0,1,0)
+    lbl.Text = "سكربت EMPEROR يرحب بكم 🌟"
+    lbl.TextColor3 = Color3.new(1,1,1)
+    lbl.TextScaled = true
+    lbl.BackgroundTransparency = 1
+end)
+
+createTab("ماب بيوت", function()
+    addScriptButton(contentFrame, "سكربت ماب بيوت", "https://rawscripts.net/raw/Brookhaven-RP-NetroZHub-49812", 20)
+    addScriptButton(contentFrame, "سكربت مارتن العراقي", "https://rawscripts.net/raw/Brookhaven-RP-MARTIN-IRAQ-31476", 60)
+    addScriptButton(contentFrame, "سكربت S7 ماب بيوت", "https://rawscripts.net/raw/Brookhaven-RP-S7-hub-30753", 100)
+    addScriptButton(contentFrame, "سكربت اسطوري", "https://rawscripts.net/raw/Brookhaven-RP-K0-41546", 140)
+    addScriptButton(contentFrame, "سكربت ماب بيوت تخريب OPP", "https://rawscripts.net/raw/Universal-Script-SH-HUB-44927", 180)
+    addScriptButton(contentFrame, "سكربت سايكو اسطوري", "https://rawscripts.net/raw/Brookhaven-RP-Siko-hub-48511", 220)
+end)
+
+createTab("بلوكس فروت", function()
+    addScriptButton(contentFrame, "سكربت بلوكس فروت", "https://zuwz.me/Ls-Zee-Hub", 20)
+end)
+
+createTab("ماب سرقة", function()
+    addScriptButton(contentFrame, "سكربت ماب سرقة اسطوري - RTX", "https://raw.githubusercontent.com/RTX261/RTXTOP1/refs/heads/main/RTX", 20)
+end)
+
+createTab("ماب مزرعة", function()
+    addScriptButton(contentFrame, "سكربت ماب مزرعه سبيد هوب", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", 20)
+    addScriptButton(contentFrame, "سكربت ماب مزرعه نو لاغ", "https://raw.githubusercontent.com/NoLagHubID/No-LagHUB/refs/heads/main/LoaderV1.lua", 60)
+end)
+
+createTab("اخرى", function()
+    addScriptButton(contentFrame, "سكربت VR7", "https://raw.githubusercontent.com/VR7ss/OMK/refs/heads/main/VR7-ON-TOP", 20)
+    addScriptButton(contentFrame, "سكربت مضاد رهيب و غيره", "https://rawscripts.net/raw/Universal-Script-JanHub-32893", 60)
+    addScriptButton(contentFrame, "سكربت نسخ ادمن-مابات ادمن فقط! 🔥", "https://pastebin.com/raw/67zRS6vS", 100)
+end)
+
+createTab("ديسكورد", function()
+    local lbl = Instance.new("TextLabel", contentFrame)
+    lbl.Size = UDim2.new(1,0,1,0)
+    lbl.Text = "سيرفرنا: discord.gg/wYQyuh48t4"
+    lbl.TextColor3 = Color3.fromRGB(0,255,0)
+    lbl.TextScaled = true
+    lbl.BackgroundTransparency = 1
+end)
+
+-- Animation: دخول القائمة عند التشغيل
+TweenService:Create(mainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Position = UDim2.new(0.5,-300,0.5,-200)
+}):Play()
+toggleBtn.Text = "✖"
+
+-- فتح/إغلاق مع تغيير الرمز
+local menuOpen = true
+toggleBtn.MouseButton1Click:Connect(function()
+    local goal = {}
+    if menuOpen then
+        goal.Position = UDim2.new(1,0,0.5,-200)
+        toggleBtn.Text = "≡"
+    else
+        goal.Position = UDim2.new(0.5,-mainFrame.Size.X.Offset/2,0.5,-mainFrame.Size.Y.Offset/2)
+        toggleBtn.Text = "✖"
+    end
+    menuOpen = not menuOpen
+    TweenService:Create(mainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+end)
+
+-- Rainbow Colors
+RS.RenderStepped:Connect(function()
+    local t = tick()
+    mainFrame.BackgroundColor3 = Color3.fromHSV(t%5/5,1,1)
+    sideBar.BackgroundColor3 = Color3.fromHSV(t%5/5,1,1)
+    toggleBtn.BackgroundColor3 = Color3.fromHSV(t%5/5,1,1)
+end)
