@@ -1,0 +1,194 @@
+-- EMPERORxZON-HUB | انترو + ترحيب + HUB كامل
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local pl = Players.LocalPlayer
+local PlayerGui = pl:WaitForChild("PlayerGui")
+local char = pl.Character or pl.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- === إعدادات الانترو ===
+local introDuration = 5
+local rotationSpeed = 120
+local initialEyeSize = 100
+local finalEyeSize = 300
+local initialHaloSize = 120
+local finalHaloSize = 350
+local glowAlpha = 0.2
+local soundId = "rbxassetid://1843522032"
+
+-- === إنشاء الانترو ===
+local introScreen = Instance.new("ScreenGui")
+introScreen.ResetOnSpawn = false
+introScreen.IgnoreGuiInset = true
+introScreen.Parent = PlayerGui
+
+local sharingan = Instance.new("ImageLabel")
+sharingan.Size = UDim2.new(0,initialEyeSize,0,initialEyeSize)
+sharingan.Position = UDim2.new(0.5,0,0.5,0)
+sharingan.AnchorPoint = Vector2.new(0.5,0.5)
+sharingan.BackgroundTransparency = 1
+sharingan.Image = "rbxassetid://11380031729"
+sharingan.Parent = introScreen
+
+local halo = Instance.new("Frame", introScreen)
+halo.Size = UDim2.new(0, initialHaloSize,0,initialHaloSize)
+halo.AnchorPoint = Vector2.new(0.5,0.5)
+halo.Position = UDim2.new(0.5,0,0.5,0)
+halo.BackgroundColor3 = Color3.fromRGB(255,0,0)
+halo.BackgroundTransparency = 0.7
+halo.ZIndex = sharingan.ZIndex - 1
+halo.BorderSizePixel = 0
+local haloCorner = Instance.new("UICorner", halo)
+haloCorner.CornerRadius = UDim.new(1,0)
+
+local energyLines = {}
+for i = 1,6 do
+    local line = Instance.new("Frame", introScreen)
+    line.Size = UDim2.new(0,4,0,30)
+    line.AnchorPoint = Vector2.new(0.5,0.5)
+    line.Position = UDim2.new(0.5,0,0.5,0)
+    line.BackgroundColor3 = Color3.fromRGB(255,0,0)
+    line.BackgroundTransparency = 0.5
+    line.Rotation = i * 60
+    line.BorderSizePixel = 0
+    table.insert(energyLines,line)
+end
+
+-- Glow animation
+spawn(function()
+    while sharingan.Parent do
+        TweenService:Create(sharingan, TweenInfo.new(0.5), {ImageTransparency=glowAlpha}):Play()
+        task.wait(0.5)
+        TweenService:Create(sharingan, TweenInfo.new(0.5), {ImageTransparency=0}):Play()
+        task.wait(0.5)
+    end
+end)
+
+local rot = 0
+local rotating = true
+RunService.RenderStepped:Connect(function(dt)
+    if rotating then
+        rot = rot + dt * rotationSpeed
+        sharingan.Rotation = rot
+        halo.Rotation = rot
+        for i,line in pairs(energyLines) do
+            line.Rotation = rot * (i%2==0 and 1 or -1)
+        end
+    end
+end)
+
+TweenService:Create(sharingan, TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0,finalEyeSize,0,finalEyeSize)
+}):Play()
+TweenService:Create(halo, TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0,finalHaloSize,0,finalHaloSize)
+}):Play()
+
+local sound = Instance.new("Sound", introScreen)
+sound.SoundId = soundId
+sound.Volume = 1
+sound:Play()
+
+-- === بعد انتهاء الانترو ===
+task.delay(introDuration, function()
+    rotating = false
+    introScreen:Destroy()
+
+    -- BillboardGui الترحيبي
+    local BillboardGui = Instance.new("BillboardGui", hrp)
+    BillboardGui.Size = UDim2.new(0,300,0,70)
+    BillboardGui.StudsOffset = Vector3.new(0,3,0)
+    BillboardGui.AlwaysOnTop = true
+
+    local NameLabel = Instance.new("TextLabel", BillboardGui)
+    NameLabel.Size = UDim2.new(1,0,1,0)
+    NameLabel.Text = "منور سكربت EMPERORxZON-HUB\nاتمنى لك تجربه ممتعة و شاركها مع اصحابك-🌀🔥"
+    NameLabel.TextColor3 = Color3.fromRGB(255,0,0)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.TextScaled = true
+    NameLabel.TextWrapped = true
+    NameLabel.TextYAlignment = Enum.TextYAlignment.Top
+
+    task.delay(5, function()
+        local info = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        TweenService:Create(NameLabel, info, {TextTransparency=1}):Play()
+        task.wait(1)
+        BillboardGui:Destroy()
+    end)
+
+    -- GUI الرئيسي
+    local sg = Instance.new("ScreenGui", game.CoreGui)
+    sg.Name = "EMPEROR-HUB-V1"
+
+    local screenX, screenY = workspace.CurrentCamera.ViewportSize.X, workspace.CurrentCamera.ViewportSize.Y
+    local mainWidth, mainHeight = math.clamp(screenX*0.6, 600, 800), math.clamp(screenY*0.6, 400, 600)
+
+    local mainFrame = Instance.new("Frame", sg)
+    mainFrame.Size = UDim2.new(0, mainWidth, 0, mainHeight)
+    mainFrame.Position = UDim2.new(0.5, -mainWidth/2, 0.5, -mainHeight/2)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    mainFrame.BorderSizePixel = 0
+
+    local bg = Instance.new("ImageLabel", mainFrame)
+    bg.Size = UDim2.new(1,0,1,0)
+    bg.Position = UDim2.new(0,0,0,0)
+    bg.BackgroundTransparency = 1
+    bg.ZIndex = 0
+    bg.Image = "rbxassetid://2468013579"
+
+    local sidebarWidth = math.clamp(mainWidth*0.2, 120, 180)
+    local sideBar = Instance.new("Frame", mainFrame)
+    sideBar.Size = UDim2.new(0, sidebarWidth, 1, 0)
+    sideBar.Position = UDim2.new(0,0,0,0)
+    sideBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    sideBar.BorderSizePixel = 0
+    sideBar.ZIndex = 1
+
+    local contentFrame = Instance.new("Frame", mainFrame)
+    contentFrame.Size = UDim2.new(1, -sidebarWidth, 1, 0)
+    contentFrame.Position = UDim2.new(0, sidebarWidth, 0, 0)
+    contentFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    contentFrame.BorderSizePixel = 0
+    contentFrame.ZIndex = 1
+
+    local toggleBtn = Instance.new("TextButton", sg)
+    toggleBtn.Size = UDim2.new(0,50,0,50)
+    toggleBtn.Position = UDim2.new(1,-70,0.5,-25)
+    toggleBtn.Text = "✖"
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    toggleBtn.TextColor3 = Color3.new(1,1,1)
+    toggleBtn.TextScaled = true
+
+    local function createTab(name, callback)
+        local btn = Instance.new("TextButton", sideBar)
+        btn.Size = UDim2.new(1,0,0,35)
+        btn.Position = UDim2.new(0,0,0,(#sideBar:GetChildren()-1)*35)
+        btn.Text = name
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+        btn.BorderSizePixel = 0
+        btn.MouseButton1Click:Connect(function()
+            for _,child in pairs(contentFrame:GetChildren()) do
+                child:Destroy()
+            end
+            callback()
+        end)
+    end
+
+    local function addScriptButton(parent, name, url, y)
+        local btn = Instance.new("TextButton", parent)
+        btn.Size = UDim2.new(1,-20,0,30)
+        btn.Position = UDim2.new(0,10,0,y)
+        btn.Text = name
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+        btn.BorderSizePixel = 0
+        btn.MouseButton1Click:Connect(function()
+            setclipboard(url)
+            loadstring(game:HttpGet(url))()
+        end)
+    end
+
+    -- هنا تبقى Tabs + السكربتات
