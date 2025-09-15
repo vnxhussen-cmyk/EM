@@ -1,0 +1,141 @@
+-- EMPERORxZON-TOP1-HUB-v1.3 | روابط شغالة + لا ينسخ شيء عند الضغط
+local TweenService = game:GetService("TweenService")
+local RS = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local pl = Players.LocalPlayer
+local char = pl.Character or pl.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- BillboardGui ترحيب
+local BillboardGui = Instance.new("BillboardGui", hrp)
+BillboardGui.Size = UDim2.new(0,200,0,50)
+BillboardGui.StudsOffset = Vector3.new(0,3,0)
+BillboardGui.AlwaysOnTop = true
+
+local Welcome = Instance.new("TextLabel", BillboardGui)
+Welcome.Size = UDim2.new(1,0,1,0)
+Welcome.Text = "منور سكربت EMPERORxZON-HUB 🌀🔥\nاتمنى لك تجربه ممتعة و شاركها مع اصحابك!"
+Welcome.TextColor3 = Color3.fromRGB(255,50,50)
+Welcome.BackgroundTransparency = 1
+Welcome.TextScaled = true
+
+task.delay(5, function()
+    local info = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+    TweenService:Create(Welcome, info, {TextTransparency=1}):Play()
+    task.wait(1)
+    BillboardGui:Destroy()
+end)
+
+-- GUI الرئيسي
+local sg = Instance.new("ScreenGui", game.CoreGui)
+sg.Name = "EMPERORxZON-HUB"
+
+local mainFrame = Instance.new("Frame", sg)
+mainFrame.Size = UDim2.new(0,700,0,450)
+mainFrame.Position = UDim2.new(0.5,-350,0.5,-225)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+mainFrame.BorderSizePixel = 0
+
+local sideBar = Instance.new("Frame", mainFrame)
+sideBar.Size = UDim2.new(0,150,1,0)
+sideBar.BackgroundColor3 = Color3.fromRGB(40,40,40)
+
+local contentFrame = Instance.new("Frame", mainFrame)
+contentFrame.Size = UDim2.new(1,-150,1,0)
+contentFrame.Position = UDim2.new(0,150,0,0)
+contentFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+
+-- دالة زر (مُحدثة: لا تنسخ شيئاً، وتحمي التحميل بـ pcall)
+local function addScriptButton(parent, name, url, y)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1,-20,0,30)
+    btn.Position = UDim2.new(0,10,0,y)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    btn.BorderSizePixel = 0
+    btn.MouseButton1Click:Connect(function()
+        -- لا يتم استدعاء setclipboard أو أي عملية نسخ هنا
+        -- محاولة جلب وتشغيل السكربت بأمان
+        local ok, res = pcall(function()
+            local source = game:HttpGet(url)
+            return loadstring(source)()
+        end)
+        if not ok then
+            warn("خطأ بتشغيل السكربت '"..name.."': "..tostring(res))
+        else
+            print("تم تشغيل السكربت: "..name)
+        end
+    end)
+end
+
+-- Tabs
+local function createTab(name, callback)
+    local btn = Instance.new("TextButton", sideBar)
+    btn.Size = UDim2.new(1,0,0,35)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.BorderSizePixel = 0
+    btn.MouseButton1Click:Connect(function()
+        for _,child in pairs(contentFrame:GetChildren()) do child:Destroy() end
+        callback()
+    end)
+end
+
+-- ماب بيوت
+createTab("ماب بيوت", function()
+    addScriptButton(contentFrame, "NetroZ Hub", "https://rawscripts.net/raw/Brookhaven-RP-NetroZHub-49812", 20)
+    addScriptButton(contentFrame, "مارتن العراقي", "https://rawscripts.net/raw/Brookhaven-RP-MARTIN-IRAQ-31476", 60)
+    addScriptButton(contentFrame, "S7 Hub", "https://rawscripts.net/raw/Brookhaven-RP-S7-hub-30753", 100)
+    addScriptButton(contentFrame, "K0 Hub", "https://rawscripts.net/raw/Brookhaven-RP-K0-41546", 140)
+    addScriptButton(contentFrame, "SH Hub OPP", "https://rawscripts.net/raw/Universal-Script-SH-HUB-44927", 180)
+    addScriptButton(contentFrame, "Siko Hub", "https://rawscripts.net/raw/Brookhaven-RP-Siko-hub-48511", 220)
+end)
+
+-- بلوكس فروت
+createTab("بلوكس فروت", function()
+    addScriptButton(contentFrame, "Ls-Zee Hub", "https://zuwz.me/Ls-Zee-Hub", 20)
+end)
+
+-- ماب سرقة
+createTab("ماب سرقة", function()
+    addScriptButton(contentFrame, "RTX Hub", "https://raw.githubusercontent.com/RTX261/RTXTOP1/refs/heads/main/RTX", 20)
+end)
+
+-- ماب مزرعة
+createTab("ماب مزرعة", function()
+    addScriptButton(contentFrame, "Speed Hub X", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", 20)
+    addScriptButton(contentFrame, "No-Lag Hub", "https://raw.githubusercontent.com/NoLagHubID/No-LagHUB/refs/heads/main/LoaderV1.lua", 60)
+end)
+
+-- اخرى
+createTab("اخرى", function()
+    addScriptButton(contentFrame, "VR7 Hub", "https://raw.githubusercontent.com/VR7ss/OMK/refs/heads/main/VR7-ON-TOP", 20)
+    addScriptButton(contentFrame, "JanHub", "https://rawscripts.net/raw/Universal-Script-JanHub-32893", 60)
+    addScriptButton(contentFrame, "نسخ أدمن", "https://pastebin.com/raw/67zRS6vS", 100)
+end)
+
+-- ديسكورد
+createTab("ديسكورد", function()
+    local lbl = Instance.new("TextLabel", contentFrame)
+    lbl.Size = UDim2.new(1,0,1,0)
+    lbl.Text = "- سيرفرنا: https://discord.gg/wYQyuh48t4\n\n- سيرفر الشراكة: https://discord.gg/4GVbdjkT"
+    lbl.TextColor3 = Color3.fromRGB(0,255,0)
+    lbl.TextScaled = true
+    lbl.BackgroundTransparency = 1
+end)
+
+-- EMPEROR HUB
+createTab("EMPEROR HUB", function()
+    addScriptButton(contentFrame, "تشغيل EMPEROR TOP1 HUB V5",
+        "https://raw.githubusercontent.com/vnxhussen-cmyk/EM/main/EMPEROR-TOP1-HUB-V5", 20)
+end)
+
+-- Rainbow effect
+RS.RenderStepped:Connect(function()
+    local t = tick()*0.2
+    mainFrame.BackgroundColor3 = Color3.fromHSV(t%1,1,1)
+    sideBar.BackgroundColor3 = Color3.fromHSV((t+0.2)%1,1,1)
+end)
