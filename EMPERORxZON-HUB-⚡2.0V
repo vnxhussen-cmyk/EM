@@ -1,0 +1,220 @@
+-- EMPERORxZON-HUB v3.2 Ultimate | النسخة الكاملة مع كل السكربتات + EM⚡ قابل للسحب + Tabs Scrollable + Gradient
+
+local TweenService = game:GetService("TweenService")
+local RS = game:GetService("RunService")
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
+local pl = Players.LocalPlayer
+local char = pl.Character or pl.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- ScreenGui
+local sg = Instance.new("ScreenGui", game.CoreGui)
+sg.Name = "EMPERORxZON-HUB"
+sg.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+-- Main Frame
+local mainFrame = Instance.new("Frame", sg)
+mainFrame.Size = UDim2.new(0,550,0,320)
+mainFrame.Position = UDim2.new(0.5,-275,0.5,-160)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+
+-- Sidebar Scrollable
+local sideBar = Instance.new("ScrollingFrame", mainFrame)
+sideBar.Size = UDim2.new(0,140,1,0)
+sideBar.Position = UDim2.new(0,0,0,0)
+sideBar.BackgroundColor3 = Color3.fromRGB(25,25,25)
+sideBar.BorderSizePixel = 0
+sideBar.CanvasSize = UDim2.new(0,0,3,0)
+sideBar.ScrollBarThickness = 8
+sideBar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+-- Content Frame Scrollable
+local contentFrame = Instance.new("ScrollingFrame", mainFrame)
+contentFrame.Size = UDim2.new(1,-140,1,0)
+contentFrame.Position = UDim2.new(0,140,0,0)
+contentFrame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+contentFrame.BorderSizePixel = 0
+contentFrame.CanvasSize = UDim2.new(0,0,3,0)
+contentFrame.ScrollBarThickness = 8
+contentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+-- Create Tab Function with Gradient
+local function createTab(name, callback)
+    local btn = Instance.new("TextButton", sideBar)
+    btn.Size = UDim2.new(1,-10,0,32)
+    btn.Position = UDim2.new(0,5,0,(#sideBar:GetChildren()-1)*36)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.7,0.8)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    btn.AutoButtonColor = true
+    btn.MouseButton1Click:Connect(function()
+        for _,child in pairs(contentFrame:GetChildren()) do
+            child:Destroy()
+        end
+        callback()
+    end)
+end
+
+-- Add Script Button
+local function addScriptButton(parent,name,url,y)
+    local btn = Instance.new("TextButton",parent)
+    btn.Size = UDim2.new(1,-20,0,28)
+    btn.Position = UDim2.new(0,10,0,y)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.6,0.8)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    btn.MouseButton1Click:Connect(function()
+        setclipboard(url)
+        loadstring(game:HttpGet(url))()
+    end)
+end
+
+-- =========================
+-- كل التابات + السكربتات القديمة
+-- ماب بيوت
+createTab("ماب بيوت", function()
+    addScriptButton(contentFrame, "سكربت ماب بيوت", "https://rawscripts.net/raw/Brookhaven-RP-NetroZHub-49812", 10)
+    addScriptButton(contentFrame, "سكربت مارتن العراقي", "https://rawscripts.net/raw/Brookhaven-RP-MARTIN-IRAQ-31476", 50)
+    addScriptButton(contentFrame, "سكربت S7 ماب بيوت", "https://rawscripts.net/raw/Brookhaven-RP-S7-hub-30753", 90)
+    addScriptButton(contentFrame, "سكربت اسطوري", "https://rawscripts.net/raw/Brookhaven-RP-K0-41546", 130)
+    addScriptButton(contentFrame, "سكربت ماب بيوت تخريب OPP", "https://rawscripts.net/raw/Universal-Script-SH-HUB-44927", 170)
+    addScriptButton(contentFrame, "سكربت سايكو اسطوري", "https://rawscripts.net/raw/Brookhaven-RP-Siko-hub-48511", 210)
+end)
+
+-- Blox Fruit
+createTab("Blox Fruit", function()
+    addScriptButton(contentFrame, "سكربت Blox Fruit", "https://zuwz.me/Ls-Zee-Hub", 10)
+    addScriptButton(contentFrame, "سكربت الوجهة الاخضر الاسطوري", "https://raw.githubusercontent.com/LuaCrack/Min/refs/heads/main/MinXt2Eng", 50)
+    addScriptButton(contentFrame, "سكربت القمر المفتاح:hHWIfdDuGh", "https://raw.githubusercontent.com/UserDevEthical/Loadstring/main/CokkaHub.lua", 90)
+    addScriptButton(contentFrame, "سكربت Blox Fruit قديم", "https://raw.githubusercontent.com/LuaCrack/Min/refs/heads/main/MinXt2Eng", 130)
+end)
+
+-- ماب سرقة
+createTab("ماب سرقة", function()
+    addScriptButton(contentFrame, "سكربت RTX المفتاح: RTXTOP1", "https://raw.githubusercontent.com/RTX261/RTXTOP1/refs/heads/main/RTX", 10)
+    addScriptButton(contentFrame, "سكربت ماب سرقة اوبي", "https://raw.githubusercontent.com/Ninja10908/S4/refs/heads/main/Kurdhub", 50)
+    addScriptButton(contentFrame, "سكربت اختفاء", "https://pastefy.app/NU4lqGZe/raw", 90)
+end)
+
+-- ماب مزرعة
+createTab("ماب مزرعة", function()
+    addScriptButton(contentFrame, "سكربت ماب مزرعه سبيد هوب", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", 10)
+    addScriptButton(contentFrame, "سكربت ماب مزرعه نو لاغ", "https://raw.githubusercontent.com/NoLagHubID/No-LagHUB/refs/heads/main/LoaderV1.lua", 50)
+    addScriptButton(contentFrame, "سكربت تان هوب", "https://raw.githubusercontent.com/thantzy/thanhub/refs/heads/main/thanv1", 90)
+end)
+
+-- ماب 99 ليلة
+createTab("ماب 99 ليلة", function()
+    addScriptButton(contentFrame, "سكربت 99 ليلة", "https://raw.githubusercontent.com/VapeVoidware/VWExtra/main/NightsInTheForest.lua", 10)
+end)
+
+-- بلو لوك
+createTab("بلو لوك", function()
+    addScriptButton(contentFrame, "تحكم بالكرة", "https://raw.githubusercontent.com/RedJDark/CONTROL-SCRIPTT/refs/heads/main/CONTROL", 10)
+    addScriptButton(contentFrame, "سكربت بلو لوك", "https://raw.githubusercontent.com/Youifpg/ArbixHubV1/refs/heads/main/Source.lua", 50)
+    addScriptButton(contentFrame, "سكربت بلو لوك ثاني", "https://raw.githubusercontent.com/gumanba/Scripts/refs/heads/main/BlueLock", 90)
+end)
+
+-- ماب قنبلة
+createTab("ماب قنبلة", function()
+    addScriptButton(contentFrame, "سكربت ماب قنبلة", "https://raw.githubusercontent.com/7yd7/Hub/refs/heads/Branch/Terms-of-Service.lua", 10)
+    addScriptButton(contentFrame, "سكربت ماب قنبلة 2", "https://pastebin.com/raw/qgjTHReg", 50)
+end)
+
+-- اخرى
+createTab("اخرى", function()
+    addScriptButton(contentFrame, "سكربت VR7", "https://raw.githubusercontent.com/VR7ss/OMK/refs/heads/main/VR7-ON-TOP", 10)
+    addScriptButton(contentFrame, "سكربت مضاد رهيب و غيره", "https://rawscripts.net/raw/Universal-Script-JanHub-32893", 50)
+    addScriptButton(contentFrame, "سكربت نسخ ادمن-مابات ادمن فقط!", "https://pastebin.com/raw/67zRS6vS", 90)
+    addScriptButton(contentFrame, "سكربت صمله", "https://rawscripts.net/raw/Universal-Script-BR3X-HUB-31339", 130)
+end)
+
+-- ديسكورد
+createTab("ديسكورد", function()
+    local serverBtn = Instance.new("TextButton", contentFrame)
+    serverBtn.Size = UDim2.new(1,-20,0,40)
+    serverBtn.Position = UDim2.new(0,10,0,10)
+    serverBtn.Text = "سيرفرنا - https://discord.gg/wYQyuh48t4 | اضغط للنسخ"
+    serverBtn.TextColor3 = Color3.fromRGB(0,255,0)
+    serverBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    serverBtn.BorderSizePixel = 0
+    serverBtn.TextScaled = true
+    serverBtn.MouseButton1Click:Connect(function()
+        setclipboard("https://discord.gg/wYQyuh48t4")
+    end)
+
+    local partnerBtn = Instance.new("TextButton", contentFrame)
+    partnerBtn.Size = UDim2.new(1,-20,0,40)
+    partnerBtn.Position = UDim2.new(0,10,0,60)
+    partnerBtn.Text = "سيرفر الشراكة - https://discord.gg/4GVbdjkT | اضغط للنسخ"
+    partnerBtn.TextColor3 = Color3.fromRGB(0,255,0)
+    partnerBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    partnerBtn.BorderSizePixel = 0
+    partnerBtn.TextScaled = true
+    partnerBtn.MouseButton1Click:Connect(function()
+        setclipboard("https://discord.gg/4GVbdjkT")
+    end)
+end)
+
+-- زر EM⚡ أعلى اليمين + وميض + قابل للسحب + إخفاء/إظهار
+local toggleBtn = Instance.new("TextButton", sg)
+toggleBtn.Size = UDim2.new(0,70,0,40)
+toggleBtn.Position = UDim2.new(1,-90,0,20)
+toggleBtn.Text = "𝑬𝑴⚡"
+toggleBtn.TextScaled = true
+toggleBtn.Font = Enum.Font.Antique
+toggleBtn.BackgroundTransparency = 1
+toggleBtn.TextColor3 = Color3.fromRGB(255,255,0)
+toggleBtn.BorderSizePixel = 0
+
+-- وميض تدريجي
+local t = 0
+RS.RenderStepped:Connect(function(dt)
+    t = t + dt*2
+    local h = t % 1
+    toggleBtn.TextColor3 = Color3.fromHSV(h,1,1)
+end)
+
+-- سحب الزر
+local dragging = false
+local dragInput,mousePos,framePos
+toggleBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = toggleBtn.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+toggleBtn.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        toggleBtn.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset+delta.X, framePos.Y.Scale, framePos.Y.Offset+delta.Y)
+    end
+end)
+
+-- إخفاء/إظهار القائمة
+local visible = true
+toggleBtn.MouseButton1Click:Connect(function()
+    visible = not visible
+    mainFrame.Visible = visible
+end)
