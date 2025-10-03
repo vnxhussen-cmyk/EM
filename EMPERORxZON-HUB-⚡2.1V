@@ -1,0 +1,441 @@
+-- EMPERORxZON-HUB v3.3 Ultimate (Full)
+-- مميزات: حفظ الإعدادات (لو متاحة) + أنيميشن تبديل التابات + ثيمات + زر تحديث + إغلاق نهائي + شريط حالة
+-- ملاحظة: الحفظ يعتمد على writefile/readfile و HttpService:JSONEncode/Decode إن كانت متاحة في الـ executor؛ إن لم تتوفر فالإعدادات تحفظ مؤقتًا خلال الجلسة فقط.
+
+local TweenService = game:GetService("TweenService")
+local RS = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+
+local pl = Players.LocalPlayer
+local char = pl.Character or pl.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- اسم ملف الحفظ
+local saveFileName = "EMPERORxZON_HUB_Settings.json"
+
+-- الإعدادات الافتراضية
+local settings = {
+    lastTab = "ماب بيوت",
+    hubVisible = true,
+    buttonPos = {scaleX = 1, offsetX = -90, scaleY = 0, offsetY = 20},
+    theme = "Dark"
+}
+
+-- محاولة تحميل الإعدادات من ملف محلي (إن وُجد وبيئة التنفيذ تدعم writefile/readfile)
+local function loadSettings()
+    local ok, content = pcall(function()
+        if readfile and isfile and isfile(saveFileName) then
+            return readfile(saveFileName)
+        else
+            return nil
+        end
+    end)
+    if ok and content and #content > 0 then
+        local suc, data = pcall(function() return HttpService:JSONDecode(content) end)
+        if suc and type(data) == "table" then
+            for k,v in pairs(data) do settings[k] = v end
+        end
+    end
+end
+
+local function saveSettings()
+    local ok = pcall(function()
+        if writefile then
+            local encoded = HttpService:JSONEncode(settings)
+            writefile(saveFileName, encoded)
+        end
+    end)
+    return ok
+end
+
+-- تحميل الإعدادات عند البداية
+pcall(loadSettings)
+
+-- helper لتحويل UDim2 مخزّن إلى قيمة UDim2
+local function settingsToUDim2(t)
+    if type(t) ~= "table" then
+        return UDim2.new(1,-90,0,20)
+    end
+    return UDim2.new(t.scaleX or 1, t.offsetX or -90, t.scaleY or 0, t.offsetY or 20)
+end
+
+-- واجهة الهب
+local sg = Instance.new("ScreenGui")
+sg.Name = "EMPERORxZON-HUB"
+sg.ZIndexBehavior = Enum.ZIndexBehavior.Global
+sg.Parent = game:GetService("CoreGui") -- قد يختلف حسب الـ executor
+
+-- شريط الحالة (Status)
+local statusLabel = Instance.new("TextLabel", sg)
+statusLabel.Size = UDim2.new(0,320,0,30)
+statusLabel.Position = UDim2.new(0.5,-160,0,6)
+statusLabel.BackgroundTransparency = 0.35
+statusLabel.BackgroundColor3 = Color3.fromRGB(30,30,30)
+statusLabel.TextColor3 = Color3.fromRGB(0,255,0)
+statusLabel.TextScaled = true
+statusLabel.BorderSizePixel = 0
+statusLabel.Text = "✅ EMPEROR HUB جاهز"
+
+local function setStatus(text, color)
+    statusLabel.Text = text or ""
+    statusLabel.TextColor3 = color or Color3.fromRGB(0,255,0)
+    -- إعادة الحالة للرسالة الافتراضية بعد 3 ثواني
+    spawn(function()
+        wait(3)
+        statusLabel.Text = "✅ EMPEROR HUB جاهز"
+        statusLabel.TextColor3 = Color3.fromRGB(0,255,0)
+    end)
+end
+
+-- الإطار الرئيسي
+local mainFrame = Instance.new("Frame", sg)
+mainFrame.Size = UDim2.new(0,550,0,340)
+mainFrame.Position = UDim2.new(0.5,-275,0.5,-170)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Visible = settings.hubVisible
+
+-- الشريط الجانبي
+local sideBar = Instance.new("ScrollingFrame", mainFrame)
+sideBar.Size = UDim2.new(0,140,1,0)
+sideBar.Position = UDim2.new(0,0,0,0)
+sideBar.BackgroundColor3 = Color3.fromRGB(25,25,25)
+sideBar.BorderSizePixel = 0
+sideBar.CanvasSize = UDim2.new(0,0,3,0)
+sideBar.ScrollBarThickness = 8
+sideBar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+-- محتوى التابات هو ScrollingFrame ليس Frame (عشان فيه أزرار كثيرة)
+local contentFrame = Instance.new("ScrollingFrame", mainFrame)
+contentFrame.Size = UDim2.new(1,-140,1,0)
+contentFrame.Position = UDim2.new(0,140,0,0)
+contentFrame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+contentFrame.BorderSizePixel = 0
+contentFrame.CanvasSize = UDim2.new(0,0,3,0)
+contentFrame.ScrollBarThickness = 8
+contentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+contentFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+
+-- دالة تبديل المحتوى مع أنيميشن Fade
+local function clearContent()
+    for _,c in pairs(contentFrame:GetChildren()) do
+        if not c:IsA("UIGridLayout") and not c:IsA("UIPadding") and not c:IsA("UITextSizeConstraint") then
+            c:Destroy()
+        end
+    end
+end
+
+local function switchContent(callback)
+    clearContent()
+    contentFrame.BackgroundTransparency = 1
+    if callback then callback() end
+    TweenService:Create(contentFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {BackgroundTransparency = 0}):Play()
+end
+
+-- دالة إنشـاء تاب
+local tabButtons = {}
+local function createTab(name, callback)
+    local btn = Instance.new("TextButton", sideBar)
+    btn.Size = UDim2.new(1,-10,0,32)
+    btn.Position = UDim2.new(0,5,0,(#tabButtons)*36 + 6)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.7,0.8)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    btn.AutoButtonColor = true
+
+    btn.MouseButton1Click:Connect(function()
+        settings.lastTab = name
+        pcall(function() switchContent(callback) end)
+        pcall(saveSettings)
+    end)
+
+    table.insert(tabButtons, btn)
+
+    -- إذا هذا آخر تاب تم فتحه فنعرضه فورًا
+    if settings.lastTab == name then
+        pcall(function() switchContent(callback) end)
+    end
+end
+
+-- دالة إضافة زر سكربت (لن يقوم بالنسخ الآن — فقط يحمل ويشغّل)
+local function addScriptButton(parent, name, url, y)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1,-20,0,28)
+    btn.Position = UDim2.new(0,10,0,y)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.6,0.8)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    btn.MouseButton1Click:Connect(function()
+        local ok, err = pcall(function()
+            local code = game:HttpGet(url)
+            local f = loadstring(code)
+            if f then f() end
+        end)
+        if not ok then
+            setStatus("❌ فشل تشغيل: "..name, Color3.fromRGB(255,80,80))
+            warn("EMPEROR HUB - failed to run:", name, err)
+        else
+            setStatus("✅ تم تشغيل: "..name, Color3.fromRGB(0,255,0))
+        end
+    end)
+end
+
+-- ========== تعريف كل التابات والسكربتات (نقلت كل الروابط اللي أعطيتني إياها) ==========
+
+createTab("ماب بيوت", function()
+    addScriptButton(contentFrame, "سكربت ماب بيوت", "https://rawscripts.net/raw/Brookhaven-RP-NetroZHub-49812", 10)
+    addScriptButton(contentFrame, "سكربت مارتن العراقي", "https://rawscripts.net/raw/Brookhaven-RP-MARTIN-IRAQ-31476", 50)
+    addScriptButton(contentFrame, "سكربت S7 ماب بيوت", "https://rawscripts.net/raw/Brookhaven-RP-S7-hub-30753", 90)
+    addScriptButton(contentFrame, "سكربت اسطوري", "https://rawscripts.net/raw/Brookhaven-RP-K0-41546", 130)
+    addScriptButton(contentFrame, "سكربت ماب بيوت تخريب OPP", "https://rawscripts.net/raw/Universal-Script-SH-HUB-44927", 170)
+    addScriptButton(contentFrame, "سكربت سايكو اسطوري", "https://rawscripts.net/raw/Brookhaven-RP-Siko-hub-48511", 210)
+end)
+
+createTab("Blox Fruit", function()
+    addScriptButton(contentFrame, "سكربت Blox Fruit", "https://zuwz.me/Ls-Zee-Hub", 10)
+    addScriptButton(contentFrame, "سكربت الوجهة الاخضر الاسطوري", "https://raw.githubusercontent.com/LuaCrack/Min/refs/heads/main/MinXt2Eng", 50)
+    addScriptButton(contentFrame, "سكربت القمر المفتاح:hHWIfdDuGh", "https://raw.githubusercontent.com/UserDevEthical/Loadstring/main/CokkaHub.lua", 90)
+    addScriptButton(contentFrame, "سكربت Blox Fruit قديم", "https://raw.githubusercontent.com/LuaCrack/Min/refs/heads/main/MinXt2Eng", 130)
+end)
+
+createTab("ماب سرقة", function()
+    addScriptButton(contentFrame, "سكربت RTX المفتاح: RTXTOP1", "https://raw.githubusercontent.com/RTX261/RTXTOP1/refs/heads/main/RTX", 10)
+    addScriptButton(contentFrame, "سكربت ماب سرقة اوبي", "https://raw.githubusercontent.com/Ninja10908/S4/refs/heads/main/Kurdhub", 50)
+    addScriptButton(contentFrame, "سكربت اختفاء", "https://pastefy.app/NU4lqGZe/raw", 90)
+end)
+
+createTab("ماب مزرعة", function()
+    addScriptButton(contentFrame, "سكربت ماب مزرعه سبيد هوب", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", 10)
+    addScriptButton(contentFrame, "سكربت ماب مزرعه نو لاغ", "https://raw.githubusercontent.com/NoLagHubID/No-LagHUB/refs/heads/main/LoaderV1.lua", 50)
+    addScriptButton(contentFrame, "سكربت تان هوب", "https://raw.githubusercontent.com/thantzy/thanhub/refs/heads/main/thanv1", 90)
+end)
+
+createTab("ماب 99 ليلة", function()
+    addScriptButton(contentFrame, "سكربت 99 ليلة", "https://raw.githubusercontent.com/VapeVoidware/VWExtra/main/NightsInTheForest.lua", 10)
+end)
+
+createTab("بلو لوك", function()
+    addScriptButton(contentFrame, "تحكم بالكرة", "https://raw.githubusercontent.com/RedJDark/CONTROL-SCRIPTT/refs/heads/main/CONTROL", 10)
+    addScriptButton(contentFrame, "سكربت بلو لوك", "https://raw.githubusercontent.com/Youifpg/ArbixHubV1/refs/heads/main/Source.lua", 50)
+    addScriptButton(contentFrame, "سكربت بلو لوك ثاني", "https://raw.githubusercontent.com/gumanba/Scripts/refs/heads/main/BlueLock", 90)
+end)
+
+createTab("ماب قنبلة", function()
+    addScriptButton(contentFrame, "سكربت ماب قنبلة", "https://raw.githubusercontent.com/7yd7/Hub/refs/heads/Branch/Terms-of-Service.lua", 10)
+    addScriptButton(contentFrame, "سكربت ماب قنبلة 2", "https://pastebin.com/raw/qgjTHReg", 50)
+end)
+
+createTab("اخرى", function()
+    addScriptButton(contentFrame, "سكربت VR7", "https://raw.githubusercontent.com/VR7ss/OMK/refs/heads/main/VR7-ON-TOP", 10)
+    addScriptButton(contentFrame, "سكربت مضاد رهيب و غيره", "https://rawscripts.net/raw/Universal-Script-JanHub-32893", 50)
+    addScriptButton(contentFrame, "سكربت نسخ ادمن-مابات ادمن فقط!", "https://pastebin.com/raw/67zRS6vS", 90)
+    addScriptButton(contentFrame, "سكربت صمله", "https://rawscripts.net/raw/Universal-Script-BR3X-HUB-31339", 130)
+end)
+
+createTab("ديسكورد", function()
+    local serverBtn = Instance.new("TextButton", contentFrame)
+    serverBtn.Size = UDim2.new(1,-20,0,40)
+    serverBtn.Position = UDim2.new(0,10,0,10)
+    serverBtn.Text = "سيرفرنا - اضغط للنسخ"
+    serverBtn.TextColor3 = Color3.fromRGB(0,255,0)
+    serverBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    serverBtn.BorderSizePixel = 0
+    serverBtn.TextScaled = true
+    serverBtn.MouseButton1Click:Connect(function()
+        pcall(function() setclipboard("https://discord.gg/wYQyuh48t4") end)
+        setStatus("📋 تم نسخ رابط السيرفر")
+    end)
+
+    local partnerBtn = Instance.new("TextButton", contentFrame)
+    partnerBtn.Size = UDim2.new(1,-20,0,40)
+    partnerBtn.Position = UDim2.new(0,10,0,60)
+    partnerBtn.Text = "سيرفر الشراكة - اضغط للنسخ"
+    partnerBtn.TextColor3 = Color3.fromRGB(0,255,0)
+    partnerBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    partnerBtn.BorderSizePixel = 0
+    partnerBtn.TextScaled = true
+    partnerBtn.MouseButton1Click:Connect(function()
+        pcall(function() setclipboard("https://discord.gg/4GVbdjkT") end)
+        setStatus("📋 تم نسخ رابط شراكة")
+    end)
+end)
+
+-- تاب الإعدادات (ثيمات، تحديث، اغلاق)
+createTab("إعدادات", function()
+    local y = 10
+    local themeBtn = Instance.new("TextButton", contentFrame)
+    themeBtn.Size = UDim2.new(1,-20,0,40)
+    themeBtn.Position = UDim2.new(0,10,0,y); y = y + 50
+    themeBtn.Text = "تغيير الثيم (Dark / Light / Neon / Random)"
+    themeBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    themeBtn.TextScaled = true
+    themeBtn.MouseButton1Click:Connect(function()
+        local themes = {"Dark","Light","Neon","Random"}
+        local idx = table.find(themes, settings.theme) or 1
+        local nextTheme = themes[(idx % #themes) + 1]
+        settings.theme = nextTheme
+
+        if nextTheme == "Dark" then
+            mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+            contentFrame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+            sideBar.BackgroundColor3 = Color3.fromRGB(25,25,25)
+        elseif nextTheme == "Light" then
+            mainFrame.BackgroundColor3 = Color3.fromRGB(220,220,220)
+            contentFrame.BackgroundColor3 = Color3.fromRGB(240,240,240)
+            sideBar.BackgroundColor3 = Color3.fromRGB(200,200,200)
+        elseif nextTheme == "Neon" then
+            mainFrame.BackgroundColor3 = Color3.fromRGB(10,10,30)
+            contentFrame.BackgroundColor3 = Color3.fromRGB(20,20,50)
+            sideBar.BackgroundColor3 = Color3.fromRGB(15,15,40)
+        elseif nextTheme == "Random" then
+            mainFrame.BackgroundColor3 = Color3.fromHSV(math.random(),1,1)
+            contentFrame.BackgroundColor3 = Color3.fromHSV(math.random(),1,1)
+            sideBar.BackgroundColor3 = Color3.fromHSV(math.random(),1,1)
+        end
+
+        setStatus("🎨 الثيم: "..nextTheme)
+        pcall(saveSettings)
+    end)
+
+    local reloadBtn = Instance.new("TextButton", contentFrame)
+    reloadBtn.Size = UDim2.new(1,-20,0,40)
+    reloadBtn.Position = UDim2.new(0,10,0,y); y = y + 50
+    reloadBtn.Text = "🔄 تحديث HUB (تحميل آخر نسخة)"
+    reloadBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    reloadBtn.TextScaled = true
+    reloadBtn.MouseButton1Click:Connect(function()
+        setStatus("⏳ جارٍ تحديث HUB...")
+        -- ضع هنا رابط النسخة المحدثة إن وُجد
+        local ok, err = pcall(function()
+            loadstring(game:HttpGet("https://your-link-to-latest-hub.lua"))()
+        end)
+        if not ok then
+            setStatus("❌ فشل التحديث", Color3.fromRGB(255,80,80))
+            warn("Failed to reload hub:", err)
+        end
+    end)
+
+    local closeBtn = Instance.new("TextButton", contentFrame)
+    closeBtn.Size = UDim2.new(1,-20,0,40)
+    closeBtn.Position = UDim2.new(0,10,0,y); y = y + 50
+    closeBtn.Text = "❌ إغلاق نهائي (Destroy GUI)"
+    closeBtn.BackgroundColor3 = Color3.fromRGB(100,30,30)
+    closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    closeBtn.TextScaled = true
+    closeBtn.MouseButton1Click:Connect(function()
+        pcall(function() saveSettings() end)
+        sg:Destroy()
+    end)
+
+    -- زر حفظ يدوي (اختياري)
+    local saveBtn = Instance.new("TextButton", contentFrame)
+    saveBtn.Size = UDim2.new(1,-20,0,28)
+    saveBtn.Position = UDim2.new(0,10,0,y); y = y + 40
+    saveBtn.Text = "💾 حفظ الإعدادات الآن"
+    saveBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    saveBtn.TextScaled = true
+    saveBtn.MouseButton1Click:Connect(function()
+        local ok = pcall(saveSettings)
+        if ok then
+            setStatus("💾 تم حفظ الإعدادات")
+        else
+            setStatus("⚠️ الحفظ غير متاح في هذا الـ executor", Color3.fromRGB(255,200,0))
+        end
+    end)
+end)
+
+-- زر EM⚡ (قابل للسحب + وميض + يخفي/يظهر)
+local toggleBtn = Instance.new("TextButton", sg)
+toggleBtn.Size = UDim2.new(0,70,0,40)
+toggleBtn.Position = settingsToUDim2(settings.buttonPos)
+toggleBtn.Text = "𝑬𝑴⚡"
+toggleBtn.TextScaled = true
+toggleBtn.Font = Enum.Font.Antique
+toggleBtn.BackgroundTransparency = 1
+toggleBtn.TextColor3 = Color3.fromRGB(255,255,0)
+toggleBtn.BorderSizePixel = 0
+
+-- وميض تدرجي
+local t = 0
+RS.RenderStepped:Connect(function(dt)
+    t = t + dt*2
+    toggleBtn.TextColor3 = Color3.fromHSV(t % 1, 1, 1)
+end)
+
+-- خاصية السحب
+local dragging = false
+local dragInput, mousePos, framePos
+toggleBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = toggleBtn.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- حفظ مكان الزر
+                local p = toggleBtn.Position
+                settings.buttonPos = {scaleX = p.X.Scale, offsetX = p.X.Offset, scaleY = p.Y.Scale, offsetY = p.Y.Offset}
+                pcall(saveSettings)
+            end
+        end)
+    end
+end)
+
+toggleBtn.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        toggleBtn.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
+end)
+
+toggleBtn.MouseButton1Click:Connect(function()
+    settings.hubVisible = not settings.hubVisible
+    mainFrame.Visible = settings.hubVisible
+    pcall(saveSettings)
+end)
+
+-- تأكد من تطبيق الثيم المحفوظ فورًا
+do
+    local th = settings.theme or "Dark"
+    if th == "Dark" then
+        mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+        contentFrame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+        sideBar.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    elseif th == "Light" then
+        mainFrame.BackgroundColor3 = Color3.fromRGB(220,220,220)
+        contentFrame.BackgroundColor3 = Color3.fromRGB(240,240,240)
+        sideBar.BackgroundColor3 = Color3.fromRGB(200,200,200)
+    elseif th == "Neon" then
+        mainFrame.BackgroundColor3 = Color3.fromRGB(10,10,30)
+        contentFrame.BackgroundColor3 = Color3.fromRGB(20,20,50)
+        sideBar.BackgroundColor3 = Color3.fromRGB(15,15,40)
+    elseif th == "Random" then
+        mainFrame.BackgroundColor3 = Color3.fromHSV(math.random(),1,1)
+        contentFrame.BackgroundColor3 = Color3.fromHSV(math.random(),1,1)
+        sideBar.BackgroundColor3 = Color3.fromHSV(math.random(),1,1)
+    end
+end
+
+-- حفظ الحالة عند إنهاء الجلسة (إن وُجدت)
+pcall(function()
+    game:BindToClose(function()
+        pcall(saveSettings)
+    end)
+end)
+
+-- انتهى الكود
+setStatus("✅ تم تحميل EMPERORxZON-HUB v3.3 (Full)", Color3.fromRGB(0,220,0))
