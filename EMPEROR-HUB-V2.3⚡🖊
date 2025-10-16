@@ -1,0 +1,248 @@
+-- EMPEROR HUB ⚡🖊 v3.4 Ultimate+ Full Integrated (Old Tabs + Custom Music)
+-- Developer: hhhgm90 / أبو الحسن
+-- حقوق التطوير العامة: EMPEROR TEAM © 2025
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+
+local pl = Players.LocalPlayer
+local char = pl.Character or pl.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+--====================== SETTINGS ======================
+local saveFileName = "EMPEROR_HUB_Settings.json"
+local settings = {lastTab="حقوقنا", hubVisible=true, theme="Dark"}
+
+local function loadSettings()
+    local ok, content = pcall(function()
+        if isfile and isfile(saveFileName) then return readfile(saveFileName) end
+    end)
+    if ok and content and #content>0 then
+        local suc, data = pcall(function() return HttpService:JSONDecode(content) end)
+        if suc and type(data)=="table" then for k,v in pairs(data) do settings[k]=v end end
+    end
+end
+local function saveSettings()
+    pcall(function() if writefile then writefile(saveFileName, HttpService:JSONEncode(settings)) end end)
+end
+loadSettings()
+
+--====================== GUI BASE ======================
+local sg = Instance.new("ScreenGui", game.CoreGui)
+sg.Name = "EMPEROR_HUB"
+sg.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+local mainFrame = Instance.new("Frame", sg)
+mainFrame.Size = UDim2.new(0,600,0,400)
+mainFrame.Position = UDim2.new(0.5,-300,0.5,-200)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Visible = settings.hubVisible
+
+--====================== SIDEBAR ======================
+local sideBar = Instance.new("ScrollingFrame", mainFrame)
+sideBar.Size = UDim2.new(0,150,1,0)
+sideBar.BackgroundColor3 = Color3.fromRGB(25,25,30)
+sideBar.BorderSizePixel = 0
+sideBar.ScrollBarThickness = 6
+sideBar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+--====================== CONTENT ======================
+local contentFrame = Instance.new("ScrollingFrame", mainFrame)
+contentFrame.Size = UDim2.new(1,-150,1,0)
+contentFrame.Position = UDim2.new(0,150,0,0)
+contentFrame.BackgroundColor3 = Color3.fromRGB(35,35,40)
+contentFrame.BorderSizePixel = 0
+contentFrame.ScrollBarThickness = 6
+contentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+--====================== حقوقنا ======================
+local rightsFrame = Instance.new("Frame")
+rightsFrame.Size = UDim2.new(1,-20,0,100)
+rightsFrame.Position = UDim2.new(0,10,0,0)
+rightsFrame.BackgroundTransparency = 1
+
+local rightsLabel = Instance.new("TextLabel", rightsFrame)
+rightsLabel.Size = UDim2.new(1,0,1,0)
+rightsLabel.Text = [[
+المطور: ابو الحسن🖊
+اسم المطور روب: hhhgm90
+يوزر المطور ديسكورد: 819qd
+الحقوق العامه: EMPEROR TEAM
+]]
+rightsLabel.TextColor3 = Color3.fromRGB(220,220,220)
+rightsLabel.BackgroundTransparency = 1
+rightsLabel.Font = Enum.Font.GothamBold
+rightsLabel.TextScaled = true
+rightsLabel.TextWrapped = true
+rightsLabel.TextYAlignment = Enum.TextYAlignment.Top
+
+--====================== HIDE/SHOW BUTTON ======================
+local hideBtn = Instance.new("ImageButton", sg)
+hideBtn.Size = UDim2.new(0,45,0,45)
+hideBtn.Position = UDim2.new(1,-60,0,20)
+hideBtn.BackgroundTransparency = 0.3
+hideBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+hideBtn.Image = "rbxassetid://115225218455454"
+hideBtn.ScaleType = Enum.ScaleType.Fit
+hideBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    settings.hubVisible = mainFrame.Visible
+    saveSettings()
+end)
+
+--====================== STATUS MESSAGE ======================
+local function setStatus(text,color)
+    color = color or Color3.fromRGB(0,255,0)
+    local msg = Instance.new("TextLabel", mainFrame)
+    msg.Text = text
+    msg.TextColor3 = color
+    msg.Size = UDim2.new(1,0,0,30)
+    msg.Position = UDim2.new(0,0,1,-30)
+    msg.BackgroundTransparency = 1
+    msg.Font = Enum.Font.Gotham
+    msg.TextScaled = true
+    TweenService:Create(msg, TweenInfo.new(0.4), {TextTransparency=0}):Play()
+    task.wait(2)
+    TweenService:Create(msg, TweenInfo.new(0.4), {TextTransparency=1}):Play()
+    task.wait(0.5)
+    msg:Destroy()
+end
+
+--====================== FUNCTIONS ======================
+local function clearContent()
+    for _,c in pairs(contentFrame:GetChildren()) do
+        if not c:IsA("UIGridLayout") and not c:IsA("UIPadding") and not c:IsA("UITextSizeConstraint") then
+            c:Destroy()
+        end
+    end
+end
+
+local function switchContent(callback)
+    clearContent()
+    if callback then
+        callback()
+    else
+        rightsFrame.Parent = contentFrame
+    end
+end
+
+--====================== CREATE TABS ======================
+local tabButtons = {}
+local function createTab(name, callback)
+    local btn = Instance.new("TextButton", sideBar)
+    btn.Size = UDim2.new(1,-10,0,30)
+    btn.Position = UDim2.new(0,5,0,(#tabButtons)*36+5)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.6,0.8)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    btn.MouseButton1Click:Connect(function()
+        settings.lastTab = name
+        switchContent(callback)
+        saveSettings()
+    end)
+    table.insert(tabButtons, btn)
+    if settings.lastTab == name then switchContent(callback) end
+end
+
+local function addScriptButton(parent,name,url,y)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1,-20,0,28)
+    btn.Position = UDim2.new(0,10,0,y)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.6,0.8)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    if url then
+        btn.MouseButton1Click:Connect(function()
+            local ok,err = pcall(function() loadstring(game:HttpGet(url))() end)
+            if not ok then
+                setStatus("❌ فشل تشغيل: "..name, Color3.fromRGB(255,80,80))
+            else
+                setStatus("✅ تم تشغيل: "..name, Color3.fromRGB(0,255,0))
+            end
+        end)
+    end
+end
+
+--====================== RECREATE OLD TABS ======================
+createTab("حقوقنا", function() rightsFrame.Parent = contentFrame end)
+
+createTab("Blox Fruit", function()
+    addScriptButton(contentFrame,"سكربت Blox Fruit","https://zuwz.me/Ls-Zee-Hub",10)
+    addScriptButton(contentFrame,"الوجهة الاخضر","https://raw.githubusercontent.com/LuaCrack/DatThg/refs/heads/main/DatThgV2",50)
+    addScriptButton(contentFrame,"ريدز","https://raw.githubusercontent.com/tlredz/Scripts/refs/heads/main/main.luau",90)
+    addScriptButton(contentFrame,"hop","https://raw.githubusercontent.com/noguchihyuga/script/refs/heads/main/hopserver.lua",130)
+end)
+
+createTab("بلو لوك", function()
+    addScriptButton(contentFrame,"تحكم بالكرة","https://raw.githubusercontent.com/RedJDark/CONTROL-SCRIPTT/refs/heads/main/CONTROL",10)
+    addScriptButton(contentFrame,"بلو لوك","https://raw.githubusercontent.com/Youifpg/ArbixHubV1/refs/heads/main/Source.lua",50)
+    addScriptButton(contentFrame,"بلو لوك ثاني","https://raw.githubusercontent.com/gumanba/Scripts/refs/heads/main/BlueLock",90)
+    addScriptButton(contentFrame,"تحكم بالكرة v2","https://raw.githubusercontent.com/r4mpage4/LuaCom/refs/heads/main/ControlBall.rivals",130)
+end)
+
+createTab("ماب بيوت", function()
+    addScriptButton(contentFrame,"ماب بيوت","https://rawscripts.net/raw/Brookhaven-RP-NetroZHub-49812",10)
+    addScriptButton(contentFrame,"مارتن العراقي","https://rawscripts.net/raw/Brookhaven-RP-MARTIN-IRAQ-31476",50)
+    addScriptButton(contentFrame,"S7 ماب بيوت","https://rawscripts.net/raw/Brookhaven-RP-S7-hub-30753",90)
+    addScriptButton(contentFrame,"اسطوري","https://rawscripts.net/raw/Brookhaven-RP-K0-41546",130)
+end)
+
+createTab("ماب سرقة", function()
+    addScriptButton(contentFrame,"RTX (مفتاح: RTXTOP1)","https://raw.githubusercontent.com/RTX261/RTXTOP1/refs/heads/main/RTX",10)
+    addScriptButton(contentFrame,"ماب سرقة اوبي","https://raw.githubusercontent.com/Ninja10908/S4/refs/heads/main/Kurdhub",50)
+    addScriptButton(contentFrame,"اختفاء","https://pastefy.app/NU4lqGZe/raw",90)
+end)
+
+createTab("ماب مزرعه", function()
+    addScriptButton(contentFrame,"سكربت ماب مزرعه سبيد هوب","https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua",10)
+    addScriptButton(contentFrame,"سكربت ماب مزرعه نو لاغ","https://raw.githubusercontent.com/NoLagHubID/No-LagHUB/refs/heads/main/LoaderV1.lua",50)
+    addScriptButton(contentFrame,"سكربت تان هوب","https://raw.githubusercontent.com/thantzy/thanhub/refs/heads/main/thanv1",90)
+end)
+
+createTab("ماب99 ليلة", function()
+    addScriptButton(contentFrame,"سكربت 99 ليلة","https://raw.githubusercontent.com/VapeVoidware/VWExtra/main/NightsInTheForest.lua",10)
+end)
+
+createTab("ماب قنبله", function()
+    addScriptButton(contentFrame,"سكربت ماب قنبلة","https://raw.githubusercontent.com/7yd7/Hub/refs/heads/Branch/Terms-of-Service.lua",10)
+    addScriptButton(contentFrame,"سكربت ماب قنبلة 2","https://pastebin.com/raw/qgjTHReg",50)
+end)
+
+createTab("الرقصات", function()
+    addScriptButton(contentFrame,"Emote Script","https://rawscripts.net/raw/Universal-Script-7yd7-I-Emote-Script-48024",10)
+end)
+
+createTab("أخرى", function()
+    addScriptButton(contentFrame,"سكربت VR7","https://raw.githubusercontent.com/VR7ss/OMK/refs/heads/main/VR7-ON-TOP",10)
+    addScriptButton(contentFrame,"سكربت مضاد رهيب و غيره","https://rawscripts.net/raw/Universal-Script-JanHub-32893",50)
+    addScriptButton(contentFrame,"سكربت نسخ ادمن-مابات ادمن فقط!","https://pastebin.com/raw/67zRS6vS",90)
+    addScriptButton(contentFrame,"سكربت صمله","https://rawscripts.net/raw/Universal-Script-BR3X-HUB-31339",130)
+end)
+
+createTab("ديسكورد", function()
+    local btn = Instance.new("TextButton", contentFrame)
+    btn.Size = UDim2.new(1,-20,0,40)
+    btn.Position = UDim2.new(0,10,0,10)
+    btn.Text = "سيرفرنا - اضغط للنسخ"
+    btn.TextColor3 = Color3.fromRGB(0,255,0)
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    btn.MouseButton1Click:Connect(function()
+        pcall(function() setclipboard("https://discord.gg/wYQyuh48t4") end)
+        setStatus("📋 تم نسخ رابط السيرفر")
+    end)
+end)
+
+--====================== تبويب الأغاني الجديد ======================
+createTab("الأغاني", function()
+    addScriptButton(contentFrame,"سكربت الأغاني من صنعي","https://raw.githubusercontent.com/vnxhussen-cmyk/EM/main/EMPEROR-OFFICAL-MUSIC1.2v",10)
+end)
+
+print("✅ EMPEROR HUB v3.4 Ultimate+ Old Tabs + Custom Music Loaded!")
