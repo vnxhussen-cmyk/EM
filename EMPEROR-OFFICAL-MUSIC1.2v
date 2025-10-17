@@ -15,17 +15,21 @@ local saveFileName = "EMPEROR_HUB_Settings.json"
 local settings = {lastTab="حقوقنا", hubVisible=true, theme="Dark"}
 
 local function loadSettings()
-local ok, content = pcall(function()
-if isfile and isfile(saveFileName) then return readfile(saveFileName) end
-end)
-if ok and content and #content>0 then
-local suc, data = pcall(function() return HttpService:JSONDecode(content) end)
-if suc and type(data)=="table" then for k,v in pairs(data) do settings[k]=v end end
+    local ok, content = pcall(function()
+        if isfile and isfile(saveFileName) then return readfile(saveFileName) end
+    end)
+    if ok and content and #content>0 then
+        local suc, data = pcall(function() return HttpService:JSONDecode(content) end)
+        if suc and type(data)=="table" then
+            for k,v in pairs(data) do settings[k]=v end
+        end
+    end
 end
-end
+
 local function saveSettings()
-pcall(function() if writefile then writefile(saveFileName, HttpService:JSONEncode(settings)) end end)
+    pcall(function() if writefile then writefile(saveFileName, HttpService:JSONEncode(settings)) end end)
 end
+
 loadSettings()
 
 --====================== GUI BASE ======================
@@ -43,17 +47,17 @@ mainFrame.Visible = settings.hubVisible
 -- خلفية متدرجة متحركة
 local gradient = Instance.new("UIGradient", mainFrame)
 gradient.Color = ColorSequence.new{
-ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
-ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 0, 80)),
-ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 0, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
 }
 gradient.Rotation = 45
 
 task.spawn(function()
-while task.wait(0.05) do
-gradient.Rotation += 1
-if gradient.Rotation >= 360 then gradient.Rotation = 0 end
-end
+    while task.wait(0.05) do
+        gradient.Rotation += 1
+        if gradient.Rotation >= 360 then gradient.Rotation = 0 end
+    end
 end)
 
 --====================== SIDEBAR ======================
@@ -97,7 +101,7 @@ rightsLabel.TextYAlignment = Enum.TextYAlignment.Top
 --====================== HIDE/SHOW BUTTON EM🖋 ======================
 local hideBtn = Instance.new("TextButton", sg)
 hideBtn.Size = UDim2.new(0,60,0,40)
-hideBtn.Position = UDim2.new(0.7, -90, 0, 1) -- منتصف الشاشة فوق
+hideBtn.Position = UDim2.new(0.7, -90, 0, 1)
 hideBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
 hideBtn.BackgroundTransparency = 0.3
 hideBtn.Text = "EM🖋"
@@ -106,206 +110,199 @@ hideBtn.Font = Enum.Font.GothamBold
 hideBtn.TextScaled = true
 hideBtn.BorderSizePixel = 0
 
--- تأثير عند المرور على الزر
 hideBtn.MouseEnter:Connect(function()
-TweenService:Create(hideBtn, TweenInfo.new(0.2), {BackgroundTransparency=0, BackgroundColor3=Color3.fromRGB(50,50,50)}):Play()
+    TweenService:Create(hideBtn, TweenInfo.new(0.2), {BackgroundTransparency=0, BackgroundColor3=Color3.fromRGB(50,50,50)}):Play()
 end)
 hideBtn.MouseLeave:Connect(function()
-TweenService:Create(hideBtn, TweenInfo.new(0.2), {BackgroundTransparency=0.3, BackgroundColor3=Color3.fromRGB(0,0,0)}):Play()
+    TweenService:Create(hideBtn, TweenInfo.new(0.2), {BackgroundTransparency=0.3, BackgroundColor3=Color3.fromRGB(0,0,0)}):Play()
 end)
 
--- إخفاء/إظهار الهوب عند الضغط
 hideBtn.MouseButton1Click:Connect(function()
-mainFrame.Visible = not mainFrame.Visible
-settings.hubVisible = mainFrame.Visible
-saveSettings()
+    mainFrame.Visible = not mainFrame.Visible
+    settings.hubVisible = mainFrame.Visible
+    saveSettings()
 end)
 
 --====================== STATUS MESSAGE ======================
 local function setStatus(text,color)
-color = color or Color3.fromRGB(0,255,0)
-local msg = Instance.new("TextLabel", mainFrame)
-msg.Text = text
-msg.TextColor3 = color
-msg.Size = UDim2.new(1,0,0,30)
-msg.Position = UDim2.new(0,0,1,-30)
-msg.BackgroundTransparency = 1
-msg.Font = Enum.Font.Gotham
-msg.TextScaled = true
-TweenService:Create(msg, TweenInfo.new(0.4), {TextTransparency=0}):Play()
-task.wait(2)
-TweenService:Create(msg, TweenInfo.new(0.4), {TextTransparency=1}):Play()
-task.wait(0.5)
-msg:Destroy()
+    color = color or Color3.fromRGB(0,255,0)
+    local msg = Instance.new("TextLabel", mainFrame)
+    msg.Text = text
+    msg.TextColor3 = color
+    msg.Size = UDim2.new(1,0,0,30)
+    msg.Position = UDim2.new(0,0,1,-30)
+    msg.BackgroundTransparency = 1
+    msg.Font = Enum.Font.Gotham
+    msg.TextScaled = true
+    TweenService:Create(msg, TweenInfo.new(0.4), {TextTransparency=0}):Play()
+    task.wait(2)
+    TweenService:Create(msg, TweenInfo.new(0.4), {TextTransparency=1}):Play()
+    task.wait(0.5)
+    msg:Destroy()
 end
 
 --====================== FUNCTIONS ======================
-local activeSounds = {}
 local function clearContent()
-for _,c in pairs(contentFrame:GetChildren()) do
-if not c:IsA("UIGridLayout") and not c:IsA("UIPadding") and not c:IsA("UITextSizeConstraint") then
-c:Destroy()
-end
-end
+    for _,c in pairs(contentFrame:GetChildren()) do
+        if not c:IsA("UIGridLayout") and not c:IsA("UIPadding") and not c:IsA("UITextSizeConstraint") then
+            c:Destroy()
+        end
+    end
 end
 
 local function switchContent(callback)
-clearContent()
-if callback then
-callback()
-else
-rightsFrame.Parent = contentFrame
-end
-TweenService:Create(contentFrame, TweenInfo.new(0.35,Enum.EasingStyle.Quad),{BackgroundTransparency=0}):Play()
+    clearContent()
+    if callback then
+        callback()
+    else
+        rightsFrame.Parent = contentFrame
+    end
+    TweenService:Create(contentFrame, TweenInfo.new(0.35,Enum.EasingStyle.Quad),{BackgroundTransparency=0}):Play()
 end
 
 --====================== CREATE TABS ======================
 local tabButtons = {}
 local function createTab(name, callback)
-local btn = Instance.new("TextButton", sideBar)
-btn.Size = UDim2.new(1,-10,0,30)
-btn.Position = UDim2.new(0,5,0,(#tabButtons)*36+5)
-btn.Text = name
-btn.TextColor3 = Color3.new(1,1,1)
-btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.6,0.8)
-btn.BorderSizePixel = 0
-btn.TextScaled = true
-btn.MouseButton1Click:Connect(function()
-settings.lastTab = name
-switchContent(callback)
-saveSettings()
-end)
-table.insert(tabButtons, btn)
-if settings.lastTab == name then switchContent(callback) end
+    local btn = Instance.new("TextButton", sideBar)
+    btn.Size = UDim2.new(1,-10,0,30)
+    btn.Position = UDim2.new(0,5,0,(#tabButtons)*36+5)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.6,0.8)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    btn.MouseButton1Click:Connect(function()
+        settings.lastTab = name
+        switchContent(callback)
+        saveSettings()
+    end)
+    table.insert(tabButtons, btn)
+    if settings.lastTab == name then switchContent(callback) end
 end
 
 --====================== TABS ======================
 createTab("حقوقنا", function()
-rightsFrame.Parent = contentFrame
+    rightsFrame.Parent = contentFrame
 end)
 
 createTab("الأغاني", function()
-clearContent()
+    clearContent()
 
-local songsList = {  
-    {name="أغنية 1", id="107424491541808"},  
-    {name="أغنية 2", id="111668097052966"},  
-    {name="أغنية 3", id="119202700760169"},  
-    {name="كلاش-ياهاشم سب", id="86651944001600"},  
-    {name="برازيلي", id="98337901681441"},  
-    {name="برازيلي 2-", id="118507373399694"},  
-    {name="hide-slow", id="123584554132464"},  
-    {name="i love you so I can -", id="100697759026652"},  
-    {name="death Is no more", id="16831108393"},  
-    {name="Relaxed Scene", id="1848354536"},  
-    {name="The Specture phonk", id="133528255504"},  
-    {name="ROI hardstyle slowed", id="125286594503659"},  
-    {name="MOUNTAGEM LUTA EPICA", id="73966367524216"},  
-    {name="خرافييي", id="17647322226"},  
-    {name="فونك رهيب", id="120871403971"},  
-    {name="BACKROOM", id="12081749410789"},  
-    {name="فونك برضو بس غير.", id="16190760285"},  
-}  
+    local songsList = {  
+        {name="أغنية 1", id="107424491541808"},  
+        {name="أغنية 2", id="111668097052966"},  
+        {name="أغنية 3", id="119202700760169"},  
+        {name="كلاش-ياهاشم سب", id="86651944001600"},  
+        {name="برازيلي", id="98337901681441"},  
+        {name="برازيلي 2-", id="118507373399694"},  
+        {name="hide-slow", id="123584554132464"},  
+        {name="i love you so I can -", id="100697759026652"},  
+        {name="death Is no more", id="16831108393"},  
+        {name="Relaxed Scene", id="1848354536"},  
+        {name="The Specture phonk", id="133528255504"},  
+        {name="ROI hardstyle slowed", id="125286594503659"},  
+        {name="MOUNTAGEM LUTA EPICA", id="73966367524216"},  
+        {name="خرافييي", id="17647322226"},  
+        {name="فونك رهيب", id="120871403971"},  
+        {name="BACKROOM", id="12081749410789"},  
+        {name="فونك برضو بس غير.", id="16190760285"},  
+        {name="سلامات سلامات 🌹", id="117262686916795"},  
+        {name="اهٍَ ياحلو 🖋", id="117200521575877"},  
+    }  
 
-local currentSongIndex = 1  
-local soundObj = Instance.new("Sound", game.SoundService)  
-soundObj.Volume = 3  
-soundObj.Looped = false  
+    local currentSongIndex = 1  
+    local soundObj = Instance.new("Sound", game.SoundService)  
+    soundObj.Volume = 3  
+    soundObj.Looped = false  
 
-local function playSong(index)  
-    if index < 1 or index > #songsList then return end  
-    soundObj:Stop()  
-    currentSongIndex = index  
-    soundObj.SoundId = "rbxassetid://"..songsList[index].id  
-    soundObj:Play()  
-    songLabel.Text = "🎵 الآن: "..songsList[index].name  
-end  
-
--- عرض اسم الأغنية الحالية  
-local songLabel = Instance.new("TextLabel", contentFrame)  
-songLabel.Size = UDim2.new(1,-20,0,30)  
-songLabel.Position = UDim2.new(0,10,0,10)  
-songLabel.Text = "🎵 الآن: لا توجد أغنية"  
-songLabel.TextColor3 = Color3.fromRGB(0,255,0)  
-songLabel.BackgroundColor3 = Color3.fromRGB(35,35,40)  
-songLabel.BorderSizePixel = 0  
-songLabel.TextScaled = true  
-
--- شريط التقدم  
-local progressBarBg = Instance.new("Frame", contentFrame)  
-progressBarBg.Size = UDim2.new(1,-20,0,10)  
-progressBarBg.Position = UDim2.new(0,10,0,45)  
-progressBarBg.BackgroundColor3 = Color3.fromRGB(50,50,50)  
-progressBarBg.BorderSizePixel = 0  
-
-local progressBar = Instance.new("Frame", progressBarBg)  
-progressBar.Size = UDim2.new(0,0,1,0)  
-progressBar.BackgroundColor3 = Color3.fromRGB(0,255,0)  
-progressBar.BorderSizePixel = 0  
-
-task.spawn(function()  
-    while task.wait(0.1) do  
-        if soundObj.IsPlaying and soundObj.TimeLength>0 then  
-            progressBar.Size = UDim2.new(soundObj.TimePosition/soundObj.TimeLength,0,1,0)  
-        else  
-            progressBar.Size = UDim2.new(0,0,1,0)  
-        end  
-    end  
-end)  
-
--- أزرار التحكم  
-local function createControlButton(text, posY, callback)  
-    local btn = Instance.new("TextButton", contentFrame)  
-    btn.Size = UDim2.new(0.3,0,0,30)  
-    btn.Position = UDim2.new(0,10,0,posY)  
-    btn.Text = text  
-    btn.TextColor3 = Color3.fromRGB(255,255,255)  
-    btn.BackgroundColor3 = Color3.fromRGB(60,60,60)  
-    btn.BorderSizePixel = 0  
-    btn.TextScaled = true  
-    btn.MouseButton1Click:Connect(callback)  
-end  
-
-createControlButton("⏮️ السابق", 60, function()  
-    local prev = currentSongIndex-1  
-    if prev < 1 then prev = #songsList end  
-    playSong(prev)  
-end)  
-createControlButton("⏹️ إيقاف/تشغيل", 100, function()  
-    if soundObj.IsPlaying then  
-        soundObj:Pause()  
-        setStatus("⏸️ تم إيقاف الأغنية مؤقتًا", Color3.fromRGB(255,200,0))  
-    else  
+    local function playSong(index)  
+        if index < 1 or index > #songsList then return end  
+        soundObj:Stop()  
+        currentSongIndex = index  
+        soundObj.SoundId = "rbxassetid://"..songsList[index].id  
         soundObj:Play()  
-        setStatus("▶️ استئناف الأغنية", Color3.fromRGB(0,255,0))  
+        songLabel.Text = "🎵 الآن: "..songsList[index].name  
     end  
-end)  
-createControlButton("⏭️ التالي", 140, function()  
-    local next = currentSongIndex+1  
-    if next > #songsList then next = 1 end  
-    playSong(next)  
-end)  
-createControlButton("🔀 عشوائي", 180, function()  
-    local rand = math.random(1,#songsList)  
-    playSong(rand)  
-end)  
 
--- عرض جميع الأغاني كنص قابل للنقر للتشغيل مباشرة  
-for i, song in ipairs(songsList) do  
-    local btn = Instance.new("TextButton", contentFrame)  
-    btn.Size = UDim2.new(1,-20,0,28)  
-    btn.Position = UDim2.new(0,10,0,(i-1)*32 + 230)  
-    btn.Text = song.name.." ▶️"  
-    btn.TextColor3 = Color3.new(1,1,1)  
-    btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.6,0.8)  
-    btn.BorderSizePixel = 0  
-    btn.TextScaled = true  
-    btn.MouseButton1Click:Connect(function()  
-        playSong(i)  
+    local songLabel = Instance.new("TextLabel", contentFrame)  
+    songLabel.Size = UDim2.new(1,-20,0,30)  
+    songLabel.Position = UDim2.new(0,10,0,10)  
+    songLabel.Text = "🎵 الآن: لا توجد أغنية"  
+    songLabel.TextColor3 = Color3.fromRGB(0,255,0)  
+    songLabel.BackgroundColor3 = Color3.fromRGB(35,35,40)  
+    songLabel.BorderSizePixel = 0  
+    songLabel.TextScaled = true  
+
+    local progressBarBg = Instance.new("Frame", contentFrame)  
+    progressBarBg.Size = UDim2.new(1,-20,0,10)  
+    progressBarBg.Position = UDim2.new(0,10,0,45)  
+    progressBarBg.BackgroundColor3 = Color3.fromRGB(50,50,50)  
+    progressBarBg.BorderSizePixel = 0  
+
+    local progressBar = Instance.new("Frame", progressBarBg)  
+    progressBar.Size = UDim2.new(0,0,1,0)  
+    progressBar.BackgroundColor3 = Color3.fromRGB(0,255,0)  
+    progressBar.BorderSizePixel = 0  
+
+    task.spawn(function()  
+        while task.wait(0.1) do  
+            if soundObj.IsPlaying and soundObj.TimeLength>0 then  
+                progressBar.Size = UDim2.new(soundObj.TimePosition/soundObj.TimeLength,0,1,0)  
+            else  
+                progressBar.Size = UDim2.new(0,0,1,0)  
+            end  
+        end  
     end)  
-end
 
+    local function createControlButton(text, posY, callback)  
+        local btn = Instance.new("TextButton", contentFrame)  
+        btn.Size = UDim2.new(0.3,0,0,30)  
+        btn.Position = UDim2.new(0,10,0,posY)  
+        btn.Text = text  
+        btn.TextColor3 = Color3.fromRGB(255,255,255)  
+        btn.BackgroundColor3 = Color3.fromRGB(60,60,60)  
+        btn.BorderSizePixel = 0  
+        btn.TextScaled = true  
+        btn.MouseButton1Click:Connect(callback)  
+    end  
+
+    createControlButton("⏮️ السابق", 60, function()  
+        local prev = currentSongIndex-1  
+        if prev < 1 then prev = #songsList end  
+        playSong(prev)  
+    end)  
+    createControlButton("⏹️ إيقاف/تشغيل", 100, function()  
+        if soundObj.IsPlaying then  
+            soundObj:Pause()  
+            setStatus("⏸️ تم إيقاف الأغنية مؤقتًا", Color3.fromRGB(255,200,0))  
+        else  
+            soundObj:Play()  
+            setStatus("▶️ استئناف الأغنية", Color3.fromRGB(0,255,0))  
+        end  
+    end)  
+    createControlButton("⏭️ التالي", 140, function()  
+        local next = currentSongIndex+1  
+        if next > #songsList then next = 1 end  
+        playSong(next)  
+    end)  
+    createControlButton("🔀 عشوائي", 180, function()  
+        local rand = math.random(1,#songsList)  
+        playSong(rand)  
+    end)  
+
+    for i, song in ipairs(songsList) do  
+        local btn = Instance.new("TextButton", contentFrame)  
+        btn.Size = UDim2.new(1,-20,0,28)  
+        btn.Position = UDim2.new(0,10,0,(i-1)*32 + 230)  
+        btn.Text = song.name.." ▶️"  
+        btn.TextColor3 = Color3.new(1,1,1)  
+        btn.BackgroundColor3 = Color3.fromHSV(math.random(),0.6,0.8)  
+        btn.BorderSizePixel = 0  
+        btn.TextScaled = true  
+        btn.MouseButton1Click:Connect(function()  
+            playSong(i)  
+        end)  
+    end
 end)
 
 print("✅ EMPEROR HUB v3.4 Ultimate+ Fully Loaded with Music Tab!")
-
