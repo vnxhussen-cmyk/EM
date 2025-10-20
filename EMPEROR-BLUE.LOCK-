@@ -1,0 +1,217 @@
+-- ⚡ Nel Isagi V2 - Mobile Final (Dash, Special Kick, Curved Shot)
+-- 🌀 حقوق المطور مذكورة عند التشغيل
+
+local TweenService = game:GetService("TweenService")
+local P = game:GetService("Players")
+local L = P.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- CONFIGS
+local cooldownTime = 5
+local dashMaxCharge = 15
+local dashChargeTime = 5
+
+-- ESTADOS
+local dashCharges = dashMaxCharge
+local dashCooldown = false
+local specialCooldown = false
+local curvedShot = false
+
+-------------------------------------------------
+-- 🌈 شاشة الحقوق (ستايل EM⚡ / Hop)
+-------------------------------------------------
+local rightsGui = Instance.new("ScreenGui", game.CoreGui)
+rightsGui.Name = "Credits_UI"
+
+local frame = Instance.new("Frame", rightsGui)
+frame.Size = UDim2.new(0.6, 0, 0.25, 0)
+frame.Position = UDim2.new(0.2, 0, 0.35, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+frame.BorderSizePixel = 0
+frame.BackgroundTransparency = 0.2
+
+-- تدرج الألوان
+local gradient = Instance.new("UIGradient", frame)
+gradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 0)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 100, 0)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 0))
+}
+gradient.Rotation = 45
+
+-- حركة التدرج
+task.spawn(function()
+	while frame.Parent do
+		for i = 0, 360, 2 do
+			gradient.Rotation = i
+			task.wait(0.03)
+		end
+	end
+end)
+
+-- نص الحقوق
+local txt = Instance.new("TextLabel", frame)
+txt.Size = UDim2.new(1, 0, 1, 0)
+txt.BackgroundTransparency = 1
+txt.TextScaled = true
+txt.Font = Enum.Font.GothamBold
+txt.TextColor3 = Color3.fromRGB(255,255,255)
+txt.TextStrokeTransparency = 0.1
+txt.TextStrokeColor3 = Color3.fromRGB(255,255,0)
+txt.Text = "⚡ المطور - ابو الحسن ⚡\n🎮 روب: hhhgm90\n💬 ديسكورد: 819qd"
+txt.TextTransparency = 1
+
+-- تأثير الدخول (Fade In + تكبير بسيط)
+TweenService:Create(txt, TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+	TextTransparency = 0,
+}):Play()
+
+TweenService:Create(frame, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+	Size = UDim2.new(0.6, 0, 0.25, 0),
+}):Play()
+
+-- وميض خفيف على النص
+task.spawn(function()
+	while txt.Parent do
+		TweenService:Create(txt, TweenInfo.new(0.4), {TextColor3 = Color3.fromRGB(255,255,150)}):Play()
+		task.wait(0.4)
+		TweenService:Create(txt, TweenInfo.new(0.4), {TextColor3 = Color3.fromRGB(255,255,255)}):Play()
+		task.wait(0.4)
+	end
+end)
+
+-- اختفاء الحقوق بعد 6 ثوانٍ
+task.delay(6, function()
+	local fade = TweenService:Create(txt, TweenInfo.new(1.2, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+		TextTransparency = 1
+	})
+	fade:Play()
+	TweenService:Create(frame, TweenInfo.new(1.2), {BackgroundTransparency = 1}):Play()
+	game.Debris:AddItem(rightsGui, 2)
+end)
+
+-------------------------------------------------
+-- ⚽ وظائف اللعبة
+-------------------------------------------------
+local function getChar()
+	local c = L.Character or L.CharacterAdded:Wait()
+	return c, c:WaitForChild("HumanoidRootPart"), c:WaitForChild("Humanoid")
+end
+
+-- DASH
+local function Dash()
+	if dashCharges <= 0 or dashCooldown then return end
+	dashCharges -= 1
+	dashCooldown = true
+	task.delay(0.25,function() dashCooldown = false end)
+
+	local C, HRP, H = getChar()
+	local dir = HRP.CFrame.LookVector * 60
+	local bv = Instance.new("BodyVelocity")
+	bv.Velocity = dir
+	bv.MaxForce = Vector3.new(math.huge,0,math.huge)
+	bv.Parent = HRP
+	game.Debris:AddItem(bv,0.25)
+end
+
+-- Recarregar dash
+task.spawn(function()
+	while true do
+		if dashCharges < dashMaxCharge then
+			dashCharges += 1
+		end
+		task.wait(dashChargeTime)
+	end
+end)
+
+-- SPECIAL KICK
+local function SpecialKick()
+	if specialCooldown then return end
+	specialCooldown = true
+	task.delay(cooldownTime,function() specialCooldown = false end)
+
+	local C, HRP, H = getChar()
+	local ball = workspace:FindFirstChild("Football")
+	if not (ball and HRP) then return end
+
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = HRP
+	weld.Part1 = ball
+	weld.Parent = HRP
+	local targetY = HRP.Position.Y + 15
+	local flying = true
+
+	task.spawn(function()
+		while flying and HRP and HRP.Parent do
+			if not ball or not ball:IsDescendantOf(workspace) then
+				flying = false
+				if weld then weld:Destroy() end
+				break
+			end
+			HRP.Velocity = Vector3.zero
+			HRP.CFrame = CFrame.new(HRP.Position.X, targetY, HRP.Position.Z, HRP.CFrame:ToOrientation())
+			task.wait(0.05)
+		end
+	end)
+
+	task.delay(5,function()
+		if not flying then return end
+		flying = false
+		if weld then weld:Destroy() end
+		local cam = workspace.CurrentCamera
+		local dir = cam.CFrame.LookVector * 250
+
+		local bvPlayer = Instance.new("BodyVelocity")
+		bvPlayer.Velocity = dir
+		bvPlayer.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+		bvPlayer.Parent = HRP
+		game.Debris:AddItem(bvPlayer,1)
+
+		if ball then
+			ball.AssemblyLinearVelocity = dir
+		end
+	end)
+end
+
+-- TOGGLE CURVED SHOT
+local function ToggleCurved()
+	curvedShot = not curvedShot
+end
+
+-- GUI Mobile
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "NelIsagiV2_Hub"
+
+local function makeBtn(name,pos,callback)
+	local b = Instance.new("TextButton", gui)
+	b.Size = UDim2.new(0,140,0,55)
+	b.Position = pos
+	b.BackgroundColor3 = Color3.fromRGB(25,25,25)
+	b.TextColor3 = Color3.fromRGB(255,255,255)
+	b.TextScaled = true
+	b.Text = name
+	b.Font = Enum.Font.SourceSansBold
+	b.Active = true
+	b.Draggable = true
+	b.MouseButton1Click:Connect(callback)
+	return b
+end
+
+makeBtn("⚡ Dash", UDim2.new(0.05,0,0.55,0), Dash)
+makeBtn("🔥 Special Kick", UDim2.new(0.05,0,0.65,0), SpecialKick)
+makeBtn("🔀 Curved Shot", UDim2.new(0.05,0,0.75,0), ToggleCurved)
+
+-- Curved shot logic
+RunService.Heartbeat:Connect(function()
+	if curvedShot then
+		local C, HRP, H = getChar()
+		local ball = workspace:FindFirstChild("Football")
+		if ball then
+			local cam = workspace.CurrentCamera
+			local forward = cam.CFrame.LookVector * 200
+			local sideCurve = cam.CFrame.RightVector * 20
+			ball.AssemblyLinearVelocity = forward + sideCurve
+			ball.AssemblyAngularVelocity = Vector3.new()
+		end
+	end
+end)
